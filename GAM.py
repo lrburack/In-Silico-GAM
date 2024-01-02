@@ -45,11 +45,11 @@ class GAM:
                 ind = i * NPs + j
                 sec[ind, :] = self.NP(structure)
 
-        collapsed = GAM.collapse_homologs(sec, self.homolog_map)
+        detected = GAM.detect(sec, self.detection_probability)
+        collapsed = GAM.collapse_homologs(detected, self.homolog_map)
         multiplexed = GAM.multiplex(collapsed, self.multiplexing)
-        detected = GAM.detect(multiplexed, self.detection_probability)
 
-        return {'raw': detected, 'results': self.results(detected)}
+        return {'raw': multiplexed, 'results': self.results(multiplexed)}
 
     def NP(self, structure, slice_axis=2):
         """ Takes a nuclear profile of the structure
