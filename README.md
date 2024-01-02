@@ -22,7 +22,7 @@ utilities.py contains some useful functions for getting your structures in the c
 
 example.ipynb contains a super simple demonstration of how use the class, and also makes some pretty pictures.  
 
-For documentation see the <a href="https://github.com/lrburack/In-Silico-GAM/wiki"> wiki </a>. 
+For documentation see the <a href="https://github.com/lrburack/In-Silico-GAM/wiki"> wiki</a>. 
 
 <h2> Acknowledgements </h2>
 Produced with mentorship of Bernardo Zubillaga Herrera PhD and other very smart people at the Di Pierro Lab. Funded by Northeastern University's PEAK Ascent Award.
