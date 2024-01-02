@@ -10,7 +10,6 @@ def to_pkl(structures, outpath, fnames=None):
     1. nx3 numpy arrays containing xyz coordinates for beads
     2. paths to gsd files
     3. paths to dcd files
-    All structures must have the same number of beads.
     :param outpath: Location for pkl files
     :param fnames: Optional, filenames for the resulting pickle files
     """

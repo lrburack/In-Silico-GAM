@@ -30,7 +30,7 @@ class GAM:
     def run(self, structures, NPs, beads):
         """ Run GAM over an ensemble of structures
         
-        :param structures: Array of paths to pkl objects containing a beadsx3 numpy array of xyz coordinates
+        :param structures: Array of paths to pkl objects each containing a beadsx3 numpy array of xyz coordinates
         :param NPs: The number of nuclear profiles to take per structure.
         :param beads: The number of beads in each structure
         """
