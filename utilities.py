@@ -4,7 +4,7 @@ import gsd.hoomd
 from prody import parseDCD
 
 
-def to_pkl(structures, outpath, fnames=None):
+def to_pkl(structures, outpath='', fnames=None):
     """Converts an array of structures to pkl files (the preferred filetype for In-Silico GAM)
     :param structures: The structure array may contain:
     1. nx3 numpy arrays containing xyz coordinates for beads
@@ -51,7 +51,7 @@ def random_walk(length=100, delta=1, origin=np.zeros(3)):
     :param origin: Starting point
     :return: A random walk polymer
     """
-    structure = origin + np.concatenate((np.zeros([1, 3]), np.cumsum(random_unit_vector(length - 1), axis=0)))
+    structure = origin + np.concatenate((np.zeros([1, 3]), np.cumsum(random_unit_vector(length - 1) * delta, axis=0)))
 
     return structure
 

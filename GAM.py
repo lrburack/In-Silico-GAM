@@ -27,12 +27,23 @@ class GAM:
         self.detection_probability = detection_probability
         self.homolog_map = homolog_map
 
-    def run(self, structures, NPs, beads):
+    def run(self, structures, beads, NPs=1):
         """ Run GAM over an ensemble of structures
         
         :param structures: Array of paths to pkl objects each containing a beadsx3 numpy array of xyz coordinates
         :param NPs: The number of nuclear profiles to take per structure.
         :param beads: The number of beads in each structure
+        :return: A dictionary with the following fields:
+            {
+                'raw': boolean array,
+                'results': {
+                    'sectioning_counts': integer array,
+                    'cosectioning_counts': integer array,
+                    'sectioning_frequency': float array,
+                    'cosectioning_frequency': float array,
+                    'normalized_cosectioning': float array
+                }
+            }
         """
         sec = np.zeros([NPs * len(structures), beads])
 
@@ -82,11 +93,13 @@ class GAM:
         ax.plot_trisurf(x_bounds, y_bounds, [slice_pos] * 4, zorder=10, color='yellow', alpha=.4)
         ax.plot_trisurf(x_bounds, y_bounds, [slice_pos + self.slice_width] * 4, zorder=10, color='yellow', alpha=.4)
 
+        return sectioned
+
     @staticmethod
     def results(sec):
-        """ Computes results of a GAM experiment sectioning data
+        """ Computes results of a GAM experiment from sectioning data
 
-        :param sec: sample x beads numpy array of sectioning data
+        :param sec: samples x beads numpy array of sectioning data
         :return: sectioning_counts, cosectioning_counts, sectioning_frequency, cosectioning_frequency,
         normalized_cosectioning
         """
