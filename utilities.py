@@ -15,9 +15,9 @@ def to_pkl(structures, outpath='', fnames=None):
     """
 
     if fnames is None:
-        fnames = np.char.join(np.arange(len(structures), dtype=int).astype("str"), ".pkl")
+        fnames = np.char.add(np.arange(len(structures), dtype=int).astype("str"), ".pkl")
 
-    fnames = np.char.join(outpath, fnames)
+    fnames = np.char.add(outpath, fnames)
 
     for i in range(len(structures)):
         s = structures[i]
@@ -34,8 +34,8 @@ def to_pkl(structures, outpath='', fnames=None):
                 save = structure.getCoordsets(0)
 
         if save is not None:
-            with open(fnames, 'wb') as f:
-                pickle.dump(save, fnames[i])
+            with open(fnames[i], 'wb') as f:
+                pickle.dump(save, f)
 
 
 def random_unit_vector(n, dim=3):
