@@ -3,11 +3,12 @@ import numpy as np
 from scipy.optimize import minimize
 
 
-# Generic single parameter model. Provide p_2, p_1, p_0 as functions of a parameter x. Use the fit method to predict x
-# from experimental data
 class Model:
     def __init__(self, multiplexing=1, detection_probability=1, ploidy=1):
-        """ Instantiate Model object
+        """ Instantiate a Model object.
+        This is a generic model whose methods should be overriden. To use on its own, without a subclass, set the
+        attributes p_0, p_1, and p_2, representing the probabilities for finding 0, 1, or 2 of a pair of loci in a
+        slice.
         :param multiplexing: The number of NPs per sequenced 'tube'
         :param detection_probability: The probability that a sectioned bead is successfully detected (or 'sequenced')
         :param ploidy: The number of copies of each indistinguishable homologous locus
@@ -18,12 +19,16 @@ class Model:
             raise ValueError("detection_probability must be between zero and one")
         self.detection_probability = detection_probability
 
-    def fit(self, m, initial_guess, cost=None, tol=1e-100, method=None):
+    def fit(self, m, initial_guess, cost=None, tol=1e-10, method=None):
         """
-        :param m: Experimentally measured values for m_0, m_1, m_2
-        :param p: A function returning a tuple of values for p_0, p_1, p_2.
-
-        :return: The optimal parameters for the functions p such that the cost function is minimized.
+        :param m: A tuple of experimental results for a pair of loci (m_0, m_1, m_2). GAM.results returns a
+        dictionary with the field "m_i", which has these values in the correct format
+        :param initial_guess: A tuple of parameters as a starting point for the minimization.
+        :param cost: A function to compute the cost given two tuples, the first of predicted results, and the second
+        of experimental results (m_0, m_1, m_2). Defaults to Model.default_cost.
+        :param tol: Tolerance for the minimization
+        :param method: Method for the minimization
+        :return: The optimal parameters such that the cost function is minimized.
         """
 
         if cost is None:
@@ -33,10 +38,12 @@ class Model:
                         initial_guess, tol=tol, method=method)
 
     def predict(self, params):
-        """ Given a set of p's, predict the m's. That is, turn the probabilities associated with each individual
-        slice into numbers that reflect the experimental data. I will write an actual description at some point.
-        Override this method to make it more than just an alias for self.multiplex. This is where you update the p_is in
-        the static model, or the pi in the SLICE model. wow i will need to rewrite this"""
+        """ Predicts the experimental results given a set of parameters.
+        In this generic Model superclass, predict() serves as an alias for the multiplex() method. Override this method
+        with your own prediction method. In subclasses, predict() should update class attributes used to predict the
+        experimental results based on 'params'.
+        For example, in the StaticModel class, params is a float value representing the distance between two loci.
+        Before calling self.multiplex(), the attributes p_0, p_1, and p_2 are updated based on this distance."""
         return self.multiplex()
 
     def multiplex(self):
@@ -134,7 +141,9 @@ class StaticModel(Model):
 
 class SLICE(Model):
     def __init__(self, u, t, multiplexing=1, detection_probability=1, ploidy=1):
-        super(SLICE, self).__init__(multiplexing=multiplexing, detection_probability=detection_probability, ploidy=ploidy)
+        super(SLICE, self).__init__(multiplexing=multiplexing,
+                                    detection_probability=detection_probability,
+                                    ploidy=ploidy)
         self.u = u
         self.t = t
 

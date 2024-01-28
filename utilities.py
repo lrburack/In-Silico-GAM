@@ -64,4 +64,4 @@ def center_structure(structure):
 
 def crop_structure(structure, radius):
     """ Removes points outside the radius"""
-    return structure[np.linalg.norm(structure, axis=1) < radius, :]
+    return structure[np.linalg.norm(structure, axis=1) < radius][:]
