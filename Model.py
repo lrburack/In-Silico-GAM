@@ -140,7 +140,7 @@ class SLICE(Model):
         self.t = t
 
     # def fit(self):
-    #     
+    #
 
     def predict(self, pi):
         self.pi = pi
