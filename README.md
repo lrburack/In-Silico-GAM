@@ -29,7 +29,7 @@ example.ipynb contains a super simple demonstration of how use the class, and al
 For documentation see the <a href="https://github.com/lrburack/In-Silico-GAM/wiki"> wiki</a>. 
 
 <h2> Acknowledgements </h2>
-Produced with mentorship of Bernardo Zubillaga Herrera PhD and other very smart people at the Di Pierro Lab. Funded by Northeastern University's PEAK Ascent Award.
+Produced with the mentorship of Bernardo Zubillaga Herrera PhD and other very smart people at the Di Pierro Lab. Funded by Northeastern University's PEAK Ascent Award.
 <br></br>
 <div align="center">
   <img src="https://github.com/lrburack/In-Silico-GAM/assets/121359508/dab21206-5f0e-4717-a1f1-27153e803637">
