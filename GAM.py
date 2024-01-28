@@ -143,7 +143,7 @@ class GAM:
             'sectioning_frequency': sectioning_frequency,
             'cosectioning_frequency': cosectioning_frequency,
             'normalized_cosectioning': normalized_cosectioning,
-            'm_i': (m_0, m_1, cosectioning_frequency)
+            'm_i': np.stack((m_0, m_1, cosectioning_frequency), axis=-1)
         }
 
     @staticmethod

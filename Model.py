@@ -18,7 +18,7 @@ class Model:
             raise ValueError("detection_probability must be between zero and one")
         self.detection_probability = detection_probability
 
-    def fit(self, m, p, initial_guess, cost=None, tol=1e-100, method=None):
+    def fit(self, m, initial_guess, cost=None, tol=1e-100, method=None):
         """
         :param m: Experimentally measured values for m_0, m_1, m_2
         :param p: A function returning a tuple of values for p_0, p_1, p_2.
@@ -29,16 +29,14 @@ class Model:
         if cost is None:
             cost = Model.default_cost
 
-        return minimize(lambda params: cost(self.predict(p(*params)), m),
+        return minimize(lambda params: cost(self.predict(*params), m),
                         initial_guess, tol=tol, method=method)
 
-    def predict(self, p):
+    def predict(self, params):
         """ Given a set of p's, predict the m's. That is, turn the probabilities associated with each individual
-        slice into numbers that reflect the experimental data. I will write an actual description at some point"""
-        self.p_0 = p[0]
-        self.p_1 = p[1]
-        self.p_2 = p[2]
-
+        slice into numbers that reflect the experimental data. I will write an actual description at some point.
+        Override this method to make it more than just an alias for self.multiplex. This is where you update the p_is in
+        the static model, or the pi in the SLICE model. wow i will need to rewrite this"""
         return self.multiplex()
 
     def multiplex(self):
@@ -100,13 +98,14 @@ class StaticModel(Model):
         self.slice_range = slice_range
         self.slice_width = slice_width
 
+    def predict(self, distance):
+        self.p_0, self.p_1, self.p_2 = self.p(distance)
+        return self.multiplex()
+
     def p(self, distance):
         return (StaticModel.p_0(distance, self.slice_range, self.slice_width),
                 StaticModel.p_1(distance, self.slice_range, self.slice_width),
                 StaticModel.p_2(distance, self.slice_range, self.slice_width))
-
-    def fit(self, m, initial_guess, cost=None, tol=1e-100, method=None):
-        return super().fit(m, self.p, initial_guess, cost, tol, method)
 
     def __str__(self):
         return ("multiplexing: " + str(self.multiplexing) + "\ndetection_probability: " + str(
@@ -139,15 +138,12 @@ class SLICE(Model):
         self.u = u
         self.t = t
 
-    # def fit(self):
-    #
-
     def predict(self, pi):
         self.pi = pi
         return self.multiplex()
 
     def collapse_homologs(self, alpha, beta):
-        # c is a three tuple representing the probability that 0, 1 or 2 loci of an AB couple are segregated in a NP
+        # c is a tuple containing the probability that 0, 1 or 2 loci of an AB couple are segregated in a NP
         c = tuple([self.pi * self.t[i] + (1 - self.pi) * self.u[i]
                    for i in range(len(self.u))])
         if self.ploidy == 1:
@@ -171,3 +167,14 @@ class SLICE(Model):
                 raise ValueError("Invalid values of alpha and beta for this ploidy")
         else:
             raise ValueError("SLICE model not configured to handle this ploidy yet")
+
+    @staticmethod
+    def untied_probabilities(slice_range, slice_width):
+        v_1 = slice_width / slice_range
+        v_0 = 1 - v_1
+        return tuple([v_0 ** 2, v_1*v_0, v_1**2])
+
+    @staticmethod
+    def tied_probabilities(slice_range, slice_width):
+        v_1 = slice_width / slice_range
+        return tuple([v_1, 0, 1 - v_1])
