@@ -3,7 +3,7 @@
 
 *.pkl
 *.ipynb
-!testmodel.ipynb
+!example.ipynb
 
 
 # User-specific stuff
