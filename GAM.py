@@ -27,7 +27,7 @@ class GAM:
         self.detection_probability = detection_probability
         self.homolog_map = homolog_map
 
-    def run(self, structures, beads, NPs=1):
+    def run(self, structures, beads=None, NPs=1):
         """ Run GAM over an ensemble of structures
         
         :param structures: Array of paths to pkl objects each containing a beadsx3 numpy array of xyz coordinates
@@ -45,12 +45,21 @@ class GAM:
                 }
             }
         """
+
+        if beads is None:
+            beads = GAM.count_beads(structures[0])
+
         sec = np.zeros([NPs * len(structures), beads])
 
         for i in range(len(structures)):
             s = open(structures[i], 'rb')
             structure = pickle.load(s)
             s.close()
+
+            # Check that structure has the correct number of beads
+            if len(structure) != beads:
+                raise ValueError("Structure " + structures[i] + " has the wrong number of beads (" + str(len(structure))
+                                 + "). Expected " + str(beads))
 
             for j in range(NPs):
                 ind = i * NPs + j
@@ -72,6 +81,7 @@ class GAM:
         slice_pos = self.pick_slice(self.slice_width, self.nuclear_radius, structure, slice_axis)
         sec = np.logical_and(rotation[:, slice_axis] > slice_pos,
                              rotation[:, slice_axis] < slice_pos + self.slice_width)
+
         return sec
 
     def illustrate_NP(self, ax, structure, slice_pos=None, slice_axis=2):
@@ -117,12 +127,23 @@ class GAM:
         sectioning_frequency = sectioning_counts / len(sec)
         cosectioning_frequency = cosectioning_counts / len(sec)
 
+        m_0 = 0
+        for i in range(len(sec)):
+            m_0 += np.logical_not(np.logical_or(np.tile(sec[i], (beads, 1)).T, sec[i]))
+        m_0 = m_0 / len(sec)
+
+        m_1 = 0
+        for i in range(len(sec)):
+            m_1 += np.logical_xor(np.tile(sec[i], (beads, 1)).T, sec[i])
+        m_1 = m_1 / len(sec)
+
         return {
             'sectioning_counts': sectioning_counts,
             'cosectioning_counts': cosectioning_counts,
             'sectioning_frequency': sectioning_frequency,
             'cosectioning_frequency': cosectioning_frequency,
-            'normalized_cosectioning': normalized_cosectioning
+            'normalized_cosectioning': normalized_cosectioning,
+            'm_i': (m_0, m_1, cosectioning_frequency)
         }
 
     @staticmethod
@@ -194,3 +215,11 @@ class GAM:
         """
         return np.random.uniform(np.min(structure[:, slice_axis]) - slice_width,
                                  np.max(structure[:, slice_axis]))
+
+    @staticmethod
+    def count_beads(structure):
+        s = open(structure, 'rb')
+        beads = len(pickle.load(s))
+        s.close()
+        return beads
+
