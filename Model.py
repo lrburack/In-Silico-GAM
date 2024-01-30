@@ -2,6 +2,8 @@ from math import comb
 import numpy as np
 from scipy.optimize import minimize
 
+from GAM import GAM
+
 
 class Model:
     def __init__(self, multiplexing=1, detection_probability=1, ploidy=1):
@@ -97,6 +99,13 @@ class Model:
     def co_cost(predicted_m, m):
         return ((predicted_m[2] / (predicted_m[1] + predicted_m[2])) - (m[2] / (m[1] + m[2]))) ** 2
 
+    @staticmethod
+    def make_model(GAM_object):
+        ploidy = 1 if GAM_object.homolog_map is None else np.argmax(np.bincount(GAM_object.homolog_map))
+
+        return Model(multiplexing=GAM_object.multiplexing, detection_probability=GAM_object.detection_probability,
+                     ploidy=ploidy)
+
 
 class StaticModel(Model):
     def __init__(self, slice_range, slice_width, multiplexing=1, detection_probability=1, ploidy=1):
@@ -138,12 +147,29 @@ class StaticModel(Model):
     def p_2(D, l, h):
         return (2 * h * min(D, h) - min(D, h) ** 2) / (2 * D * l)
 
+    @staticmethod
+    def make_model(GAM_object):
+        slice_range = GAM_object.nuclear_radius * 2 + GAM_object.slice_width
+        if GAM_object.pick_slice != GAM.uniform_radius:
+            raise ValueError("Cannot make a StaticModel from a GAM configuration using a pick_slice function other than"
+                             "GAM.uniform_radius. To make a StaticModel with an alternative configuration, "
+                             "directly call the __init__ method.")
+
+        ploidy = 1 if GAM_object.homolog_map is None else np.argmax(np.bincount(GAM_object.homolog_map))
+
+        return StaticModel(slice_range=slice_range, slice_width=GAM_object.slice_width,
+                           multiplexing=GAM_object.multiplexing, detection_probability=GAM_object.detection_probability,
+                           ploidy=ploidy)
+
 
 class SLICE(Model):
     def __init__(self, u, t, multiplexing=1, detection_probability=1, ploidy=1):
         super(SLICE, self).__init__(multiplexing=multiplexing,
                                     detection_probability=detection_probability,
                                     ploidy=ploidy)
+        if ploidy > 2:
+            raise ValueError("SLICE model not yet configured to handle ploidy > 2")
+
         self.u = u
         self.t = t
 
@@ -181,7 +207,7 @@ class SLICE(Model):
     def untied_probabilities(slice_range, slice_width):
         v_1 = slice_width / slice_range
         v_0 = 1 - v_1
-        return tuple([v_0 ** 2, v_1*v_0, v_1**2])
+        return tuple([v_0 ** 2, v_1 * v_0, v_1 ** 2])
 
     @staticmethod
     def tied_probabilities(slice_range, slice_width):

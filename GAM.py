@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.spatial.transform import Rotation as r
 import pickle
-
+from Model import Model
 
 class GAM:
     def __init__(self, slice_width=1, multiplexing=1, detection_probability=1, pick_slice=None, nuclear_radius=None,
@@ -19,8 +19,14 @@ class GAM:
         least once
         """
         self.slice_width = slice_width
-        self.nuclear_radius = nuclear_radius
         self.pick_slice = pick_slice if pick_slice is not None else GAM.uniform_edges
+
+        if pick_slice is GAM.uniform_radius:
+            if nuclear_radius is None:
+                raise ValueError('Must provide nuclear_radius when using pick_slice function GAM.uniform_radius')
+            else:
+                self.nuclear_radius = nuclear_radius
+
         self.multiplexing = multiplexing
         if detection_probability > 1 or detection_probability < 0:
             raise ValueError("detection_probability must be between zero and one")
@@ -69,7 +75,7 @@ class GAM:
         collapsed = GAM.collapse_homologs(detected, self.homolog_map)
         multiplexed = GAM.multiplex(collapsed, self.multiplexing)
 
-        return {'raw': multiplexed, 'results': self.results(multiplexed)}
+        return {'raw': sec, 'results': self.results(multiplexed)}
 
     def NP(self, structure, slice_axis=2):
         """ Takes a nuclear profile of the structure
@@ -104,6 +110,9 @@ class GAM:
         ax.plot_trisurf(x_bounds, y_bounds, [slice_pos + self.slice_width] * 4, zorder=10, color='yellow', alpha=.4)
 
         return sectioned
+
+    def make_model(self, model_class=None):
+        return Model.make_model(self) if model_class is None else model_class.make_model(self)
 
     @staticmethod
     def results(sec):
