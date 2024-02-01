@@ -3,6 +3,7 @@ from scipy.spatial.transform import Rotation as r
 import pickle
 from Model import Model
 
+
 class GAM:
     def __init__(self, slice_width=1, multiplexing=1, detection_probability=1, pick_slice=None, nuclear_radius=None,
                  homolog_map=None):
@@ -20,7 +21,7 @@ class GAM:
         """
         self.slice_width = slice_width
         self.pick_slice = pick_slice if pick_slice is not None else GAM.uniform_edges
-
+        self.nuclear_radius = None
         if pick_slice is GAM.uniform_radius:
             if nuclear_radius is None:
                 raise ValueError('Must provide nuclear_radius when using pick_slice function GAM.uniform_radius')
@@ -42,6 +43,7 @@ class GAM:
         :return: A dictionary with the following fields:
             {
                 'raw': boolean array,
+                'processed': boolean array,
                 'results': {
                     'sectioning_counts': integer array,
                     'cosectioning_counts': integer array,
@@ -55,7 +57,7 @@ class GAM:
         if beads is None:
             beads = GAM.count_beads(structures[0])
 
-        sec = np.zeros([NPs * len(structures), beads])
+        sec = np.empty([NPs * len(structures), beads], dtype=bool)
 
         for i in range(len(structures)):
             s = open(structures[i], 'rb')
@@ -68,14 +70,13 @@ class GAM:
                                  + "). Expected " + str(beads))
 
             for j in range(NPs):
-                ind = i * NPs + j
-                sec[ind, :] = self.NP(structure)
+                sec[i * NPs + j, :] = self.NP(structure)
 
-        detected = GAM.detect(sec, self.detection_probability)
-        collapsed = GAM.collapse_homologs(detected, self.homolog_map)
-        multiplexed = GAM.multiplex(collapsed, self.multiplexing)
+        processed = GAM.detect(sec, self.detection_probability)
+        processed = GAM.collapse_homologs(processed, self.homolog_map)
+        processed = GAM.multiplex(processed, self.multiplexing)
 
-        return {'raw': sec, 'results': self.results(multiplexed)}
+        return {'raw': sec, 'processed': processed, 'results': self.results(processed)}
 
     def NP(self, structure, slice_axis=2):
         """ Takes a nuclear profile of the structure
@@ -94,7 +95,7 @@ class GAM:
         """ Illustrates a nuclear profile on the given axes"""
 
         if slice_pos is None:
-            slice_pos = GAM.uniform_edges(self.slice_width, self.nuclear_radius, structure, slice_axis)
+            slice_pos = GAM.uniform_edges(self.slice_width, self.nuclear_radius or None, structure, slice_axis)
         sectioned = np.logical_and(structure[:, slice_axis] > slice_pos,
                                    structure[:, slice_axis] < slice_pos + self.slice_width)
 
@@ -134,25 +135,23 @@ class GAM:
         normalized_cosectioning = np.nan_to_num(cosectioning_counts / either)
 
         sectioning_frequency = sectioning_counts / len(sec)
-        cosectioning_frequency = cosectioning_counts / len(sec)
 
-        m_0 = 0
+        m_0 = np.zeros((beads, beads), dtype=np.float32)
         for i in range(len(sec)):
-            m_0 += np.logical_not(np.logical_or(np.tile(sec[i], (beads, 1)).T, sec[i]))
-        m_0 = m_0 / len(sec)
+            m_0 += np.logical_not(np.logical_or(tile_sec, sec[i]))
+        m_0 /= len(sec)
 
-        m_1 = 0
+        m_1 = np.zeros((beads, beads), dtype=np.float32)
         for i in range(len(sec)):
-            m_1 += np.logical_xor(np.tile(sec[i], (beads, 1)).T, sec[i])
-        m_1 = m_1 / len(sec)
+            m_1 += np.logical_xor(tile_sec, sec[i])
+        m_1 /= len(sec)
 
         return {
             'sectioning_counts': sectioning_counts,
             'cosectioning_counts': cosectioning_counts,
             'sectioning_frequency': sectioning_frequency,
-            'cosectioning_frequency': cosectioning_frequency,
             'normalized_cosectioning': normalized_cosectioning,
-            'm_i': np.stack((m_0, m_1, cosectioning_frequency), axis=-1)
+            'm_i': np.stack((m_0, m_1, cosectioning_counts / len(sec)), axis=-1)
         }
 
     @staticmethod
