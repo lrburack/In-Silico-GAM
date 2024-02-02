@@ -115,6 +115,9 @@ class GAM:
     def make_model(self, model_class=None):
         return Model.make_model(self) if model_class is None else model_class.make_model(self)
 
+    def __str__(self):
+        return ', '.join("%s: %s" % item for item in vars(g).items())
+
     @staticmethod
     def results(sec):
         """ Computes results of a GAM experiment from sectioning data

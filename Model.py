@@ -85,9 +85,7 @@ class Model:
         ])
 
     def __str__(self):
-        return ("multiplexing: " + str(self.multiplexing) + "\ndetection_probability: " + str(
-            self.detection_probability)
-                + "\nploidy: " + str(self.ploidy))
+        return ', '.join("%s: %s" % item for item in vars(g).items())
 
     @staticmethod
     def default_cost(predicted_m, m):
