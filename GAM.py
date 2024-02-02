@@ -127,34 +127,29 @@ class GAM:
         normalized_cosectioning
         """
         beads = len(sec[0])
-        sectioning_counts = np.sum(sec, axis=0)
-        cosectioning_counts = np.zeros([beads, beads])
+        sectioning_counts = np.sum(sec, axis=0, dtype=np.ushort)
 
+        # Calculate m_is. This is done using a tiled array to quickly compare all pairs of loci
+        m_i = np.zeros((beads, beads, 3), dtype=np.float32)
         for i in range(len(sec)):
-            cosectioning_counts += np.logical_and(np.tile(sec[i], (beads, 1)).T, sec[i])
+            tile = np.tile(sec[i], (beads, 1)).T
+            m_i[:, :, 0] += np.logical_not(np.logical_or(tile, sec[i]))
+            m_i[:, :, 1] += np.logical_xor(tile, sec[i])
+            m_i[:, :, 2] += np.logical_and(np.tile(sec[i], (beads, 1)).T, sec[i])
+
+        cosectioning_counts = np.copy(m_i[:, :, 2]).astype(np.ushort)
+        m_i /= len(sec)
 
         tile_sec = np.tile(sectioning_counts, (beads, 1))
         either = tile_sec + tile_sec.T - cosectioning_counts
         normalized_cosectioning = np.nan_to_num(cosectioning_counts / either)
 
-        sectioning_frequency = sectioning_counts / len(sec)
-
-        m_0 = np.zeros((beads, beads), dtype=np.float32)
-        for i in range(len(sec)):
-            m_0 += np.logical_not(np.logical_or(tile_sec, sec[i]))
-        m_0 /= len(sec)
-
-        m_1 = np.zeros((beads, beads), dtype=np.float32)
-        for i in range(len(sec)):
-            m_1 += np.logical_xor(tile_sec, sec[i])
-        m_1 /= len(sec)
-
         return {
             'sectioning_counts': sectioning_counts,
             'cosectioning_counts': cosectioning_counts,
-            'sectioning_frequency': sectioning_frequency,
+            'sectioning_frequency': sectioning_counts / len(sec),
             'normalized_cosectioning': normalized_cosectioning,
-            'm_i': np.stack((m_0, m_1, cosectioning_counts / len(sec)), axis=-1)
+            'm_i': m_i
         }
 
     @staticmethod
