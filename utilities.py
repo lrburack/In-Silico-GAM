@@ -79,6 +79,6 @@ def ensemble_radii(structures):
         s = open(structures[i], 'rb')
         structure = pickle.load(s)
         s.close()
-        radii[i] = np.max(np.linalg.norm(structure))
+        radii[i] = np.max(np.linalg.norm(structure, axis=1))
 
     return radii
