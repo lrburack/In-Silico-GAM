@@ -179,12 +179,30 @@ class SLICE(Model):
             raise ValueError("SLICE model not configured to handle this ploidy yet")
 
     @staticmethod
-    def untied_probabilities(slice_range, slice_width):
+    def untied_probabilities_approx(slice_range, slice_width):
         v_1 = slice_width / slice_range
         v_0 = 1 - v_1
         return tuple([v_0 ** 2, v_1 * v_0, v_1 ** 2])
 
     @staticmethod
-    def tied_probabilities(slice_range, slice_width):
+    def tied_probabilities_approx(slice_range, slice_width):
         v_1 = slice_width / slice_range
         return tuple([v_1, 0, 1 - v_1])
+
+    @staticmethod
+    def average_interaction_as_a_function_of_genomic_distance(m_i):
+        u_i = np.zeros((len(m_i), 3))
+        for i in range(len(m_i)):
+            u_i[i, :] = np.trace(m_i, offset=i, axis1=0, axis2=1) / (len(m_i) - i)
+
+        return u_i
+
+    @staticmethod
+    def untied_probabilities(m_i, genomic_distance):
+        return np.trace(m_i, offset=genomic_distance, axis1=0, axis2=1) / (len(m_i) - genomic_distance)
+
+    @staticmethod
+    def tied_probabilities(interaction_distance, slice_width, nuclear_radius):
+        return np.array([StaticModel.p_0(interaction_distance, 2*nuclear_radius + slice_width, slice_width),
+                         StaticModel.p_1(interaction_distance, 2*nuclear_radius + slice_width, slice_width),
+                         StaticModel.p_2(interaction_distance, 2*nuclear_radius + slice_width, slice_width)])
