@@ -85,7 +85,7 @@ class Model:
         ])
 
     def __str__(self):
-        return ', '.join("%s: %s" % item for item in vars(g).items())
+        return ', '.join("%s: %s" % item for item in vars(self).items())
 
     @staticmethod
     def default_cost(predicted_m, m):

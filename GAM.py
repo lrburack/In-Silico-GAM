@@ -116,7 +116,7 @@ class GAM:
         return Model.make_model(self) if model_class is None else model_class.make_model(self)
 
     def __str__(self):
-        return ', '.join("%s: %s" % item for item in vars(g).items())
+        return ', '.join("%s: %s" % item for item in vars(self).items())
 
     @staticmethod
     def results(sec):
