@@ -65,3 +65,20 @@ def center_structure(structure):
 def crop_structure(structure, radius):
     """ Removes points outside the radius"""
     return structure[np.linalg.norm(structure, axis=1) < radius][:]
+
+
+def ensemble_radii(structures):
+    """
+    :param structures: An array of paths to pkl files containing beadsx3 numpy arrays of coordinates
+    :return: radii of structures
+    """
+
+    radii = np.zeros(len(structures))
+
+    for i in range(len(structures)):
+        s = open(structures[i], 'rb')
+        structure = pickle.load(s)
+        s.close()
+        radii[i] = np.max(np.linalg.norm(structure))
+
+    return radii
