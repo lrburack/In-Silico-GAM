@@ -132,10 +132,9 @@ class GAM:
         # Calculate m_is. This is done using a tiled array to quickly compare all pairs of loci
         m_i = np.zeros((beads, beads, 3), dtype=np.float32)
         for i in range(len(sec)):
-            tile = np.tile(sec[i], (beads, 1)).T
-            m_i[:, :, 0] += np.logical_not(np.logical_or(tile, sec[i]))
-            m_i[:, :, 1] += np.logical_xor(tile, sec[i])
-            m_i[:, :, 2] += np.logical_and(np.tile(sec[i], (beads, 1)).T, sec[i])
+            m_i[:, :, 0] += np.outer(~sec[i], ~sec[i])
+            m_i[:, :, 1] += np.outer(sec[i], ~sec[i]) | np.outer(~sec[i], sec[i])
+            m_i[:, :, 2] += np.outer(sec[i], sec[i])
 
         cosectioning_counts = np.copy(m_i[:, :, 2]).astype(np.ushort)
         m_i /= len(sec)
@@ -151,6 +150,30 @@ class GAM:
             'normalized_cosectioning': normalized_cosectioning,
             'm_i': m_i
         }
+
+    @staticmethod
+    def triplets(sec):
+        # Reshape the array for broadcasting
+        arr_i = sec[:, np.newaxis, np.newaxis]  # Shape (N, 1, 1)
+        arr_j = sec[np.newaxis, :, np.newaxis]  # Shape (1, N, 1)
+        arr_k = sec[np.newaxis, np.newaxis, :]  # Shape (1, 1, N)
+
+        # Compute the 3D correlation matrix
+        return arr_i & arr_j & arr_k
+
+    @staticmethod
+    def rebin(sec, binsize, new_binsize):
+        bincount = np.shape(sec)[1]
+        slicecount = np.shape(sec)[0]
+
+        bin_ratio = int(new_binsize // binsize)
+        new_bincount = (bincount // bin_ratio) + 1
+        rebinned = np.zeros((slicecount, new_bincount), dtype=bool)
+
+        for i in range(0, new_bincount):
+            rebinned[:, i] = np.any(sec[:, i * bin_ratio:(i + 1) * bin_ratio], axis=1)
+
+        return rebinned
 
     @staticmethod
     def collapse_homologs(sec, homolog_map):
