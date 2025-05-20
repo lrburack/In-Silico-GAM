@@ -5,7 +5,7 @@ Easy to use, wicked fast simulation of the <a href="https://www.nature.com/artic
 </div>
 
 <h2> Explore a range of experimental protocols, no hassle </h2>
-In-Silico GAM can be quickly configured to account for 
+In-Silico GAM can be easily configured to account for 
 <br></br>
 
 - homologous chromosomes
