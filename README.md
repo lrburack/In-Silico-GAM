@@ -20,7 +20,7 @@ Nuclear profiles are taken according to your protocol, then multiplexing, finite
 </div>
 
 <h2> How to use... </h2>
-Download the stuff. Create an instance of the GAM class, which takes six optional parameters: slice width, multiplexing, detection probability, pickslice function, homolog map. Then call the 'run' function with the ensemble of structures you want to use, and the number of nuclear profiles to take per structure.
+Download the source code. Create an instance of the GAM class, which takes six optional parameters: slice width, multiplexing, detection probability, pickslice function, homolog map. Then call the 'run' function with the ensemble of structures you want to use, and the number of nuclear profiles to take per structure.
 <br></br>
 utilities.py contains some useful functions for getting your structures in the correct format.  
 
