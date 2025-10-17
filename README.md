@@ -4,7 +4,7 @@ Easy to use, wicked fast simulation of the <a href="https://www.nature.com/artic
   <img src="https://github.com/lrburack/In-Silico-GAM/assets/121359508/f979f302-6257-401b-adff-af014bc27333">
 </div>
 
-<h2> Explore a range of experimental protocols, no hassle </h2>
+<h2> Explore a range of experimental protocols </h2>
 In-Silico GAM can be easily configured to account for 
 <br></br>
 
